@@ -27,7 +27,15 @@ void THTensor_(fill)(THTensor *r_, real value)
       THVector_(fill)(rp+i, value, i_end-i);
     }
   } else {
-    TH_TENSOR_APPLY(real, r_, *r__data = value;);
+    TH_TENSOR_APPLY(real, r_,
+      if (r__stride == 1) {
+        THVector_(fill)(r__data, value, r__size);
+	r__data += r__stride * r__size;
+	break;
+      } else {
+        *r__data = value;
+      }
+      );
   }
 }
 
@@ -483,9 +491,7 @@ accreal THTensor_(prodall)(THTensor *tensor)
 void THTensor_(add)(THTensor *r_, THTensor *t, real value)
 {
   THTensor_(resizeAs)(r_, t);
-  if (((THTensor_(isContiguous)(r_) && THTensor_(isContiguous)(t)) ||
-    (THTensor_(isTransposed)(r_) && THTensor_(isTransposed)(t))) &&
-    THTensor_(nElement)(r_) == THTensor_(nElement)(t)) {
+  if (THTensor_(isContiguous)(r_) && THTensor_(isContiguous)(t) && THTensor_(nElement)(r_) == THTensor_(nElement)(t)) {
     real *tp = THTensor_(data)(t);
     real *rp = THTensor_(data)(r_);
     ptrdiff_t sz = THTensor_(nElement)(t);
@@ -515,9 +521,7 @@ void THTensor_(sub)(THTensor *r_, THTensor *t, real value)
 void THTensor_(mul)(THTensor *r_, THTensor *t, real value)
 {
   THTensor_(resizeAs)(r_, t);
-  if (((THTensor_(isContiguous)(r_) && THTensor_(isContiguous)(t)) ||
-    (THTensor_(isTransposed)(r_) && THTensor_(isTransposed)(t))) &&
-    THTensor_(nElement)(r_) == THTensor_(nElement)(t)) {
+  if (THTensor_(isContiguous)(r_) && THTensor_(isContiguous)(t) && THTensor_(nElement)(r_) == THTensor_(nElement)(t)) {
     real *tp = THTensor_(data)(t);
     real *rp = THTensor_(data)(r_);
     ptrdiff_t sz = THTensor_(nElement)(t);
@@ -542,9 +546,7 @@ void THTensor_(mul)(THTensor *r_, THTensor *t, real value)
 void THTensor_(div)(THTensor *r_, THTensor *t, real value)
 {
   THTensor_(resizeAs)(r_, t);
-  if (((THTensor_(isContiguous)(r_) && THTensor_(isContiguous)(t)) ||
-    (THTensor_(isTransposed)(r_) && THTensor_(isTransposed)(t))) &&
-    THTensor_(nElement)(r_) == THTensor_(nElement)(t)) {
+  if (THTensor_(isContiguous)(r_) && THTensor_(isContiguous)(t) && THTensor_(nElement)(r_) == THTensor_(nElement)(t)) {
     real *tp = THTensor_(data)(t);
     real *rp = THTensor_(data)(r_);
     ptrdiff_t sz = THTensor_(nElement)(t);
@@ -639,9 +641,7 @@ void THTensor_(rshift)(THTensor *r_, THTensor *t, real value)
 void THTensor_(fmod)(THTensor *r_, THTensor *t, real value)
 {
   THTensor_(resizeAs)(r_, t);
-  if (((THTensor_(isContiguous)(r_) && THTensor_(isContiguous)(t)) ||
-    (THTensor_(isTransposed)(r_) && THTensor_(isTransposed)(t))) &&
-    THTensor_(nElement)(r_) == THTensor_(nElement)(t)) {
+  if (THTensor_(isContiguous)(r_) && THTensor_(isContiguous)(t) && THTensor_(nElement)(r_) == THTensor_(nElement)(t)) {
       real *tp = THTensor_(data)(t);
       real *rp = THTensor_(data)(r_);
       ptrdiff_t sz = THTensor_(nElement)(t);
@@ -666,9 +666,7 @@ void THTensor_(fmod)(THTensor *r_, THTensor *t, real value)
 void THTensor_(remainder)(THTensor *r_, THTensor *t, real value)
 {
   THTensor_(resizeAs)(r_, t);
-  if (((THTensor_(isContiguous)(r_) && THTensor_(isContiguous)(t)) ||
-    (THTensor_(isTransposed)(r_) && THTensor_(isTransposed)(t))) &&
-    THTensor_(nElement)(r_) == THTensor_(nElement)(t)) {
+  if (THTensor_(isContiguous)(r_) && THTensor_(isContiguous)(t) && THTensor_(nElement)(r_) == THTensor_(nElement)(t)) {
       real *tp = THTensor_(data)(t);
       real *rp = THTensor_(data)(r_);
       ptrdiff_t sz = THTensor_(nElement)(t);
@@ -763,9 +761,7 @@ void THTensor_(bitxor)(THTensor *r_, THTensor *t, real value)
 void THTensor_(clamp)(THTensor *r_, THTensor *t, real min_value, real max_value)
 {
   THTensor_(resizeAs)(r_, t);
-  if (((THTensor_(isContiguous)(r_) && THTensor_(isContiguous)(t)) ||
-    (THTensor_(isTransposed)(r_) && THTensor_(isTransposed)(t))) &&
-    THTensor_(nElement)(r_) == THTensor_(nElement)(t)) {
+  if (THTensor_(isContiguous)(r_) && THTensor_(isContiguous)(t) && THTensor_(nElement)(r_) == THTensor_(nElement)(t)) {
     real *tp = THTensor_(data)(t);
     real *rp = THTensor_(data)(r_);
     /* real t_val; */
@@ -782,9 +778,7 @@ void THTensor_(clamp)(THTensor *r_, THTensor *t, real min_value, real max_value)
 void THTensor_(cadd)(THTensor *r_, THTensor *t, real value, THTensor *src)
 {
   THTensor_(resizeAs)(r_, t);
-  if (((THTensor_(isContiguous)(r_) && THTensor_(isContiguous)(t) && THTensor_(isContiguous)(src)) || 
-    (THTensor_(isTransposed)(r_) && THTensor_(isTransposed)(t) && THTensor_(isTransposed)(src))) &&
-    THTensor_(nElement)(r_) == THTensor_(nElement)(src)) {
+  if (THTensor_(isContiguous)(r_) && THTensor_(isContiguous)(t) && THTensor_(isContiguous)(src) && THTensor_(nElement)(r_) == THTensor_(nElement)(src)) {
     if(r_ == t) {
       THBlas_(axpy)(THTensor_(nElement)(t), value, THTensor_(data)(src), 1, THTensor_(data)(r_), 1);
     } else {
@@ -819,9 +813,7 @@ void THTensor_(csub)(THTensor *r_, THTensor *t, real value,THTensor *src)
 void THTensor_(cmul)(THTensor *r_, THTensor *t, THTensor *src)
 {
   THTensor_(resizeAs)(r_, t);
-  if (((THTensor_(isContiguous)(r_) && THTensor_(isContiguous)(t) && THTensor_(isContiguous)(src)) || 
-    (THTensor_(isTransposed)(r_) && THTensor_(isTransposed)(t) && THTensor_(isTransposed)(src))) &&
-    THTensor_(nElement)(r_) == THTensor_(nElement)(src)) {
+  if (THTensor_(isContiguous)(r_) && THTensor_(isContiguous)(t) && THTensor_(isContiguous)(src) && THTensor_(nElement)(r_) == THTensor_(nElement)(src)) {
     real *tp = THTensor_(data)(t);
     real *sp = THTensor_(data)(src);
     real *rp = THTensor_(data)(r_);
@@ -847,9 +839,7 @@ void THTensor_(cmul)(THTensor *r_, THTensor *t, THTensor *src)
 void THTensor_(cpow)(THTensor *r_, THTensor *t, THTensor *src)
 {
   THTensor_(resizeAs)(r_, t);
-  if (((THTensor_(isContiguous)(r_) && THTensor_(isContiguous)(t) && THTensor_(isContiguous)(src)) || 
-    (THTensor_(isTransposed)(r_) && THTensor_(isTransposed)(t) && THTensor_(isTransposed)(src))) &&
-    THTensor_(nElement)(r_) == THTensor_(nElement)(src)) {
+  if (THTensor_(isContiguous)(r_) && THTensor_(isContiguous)(t) && THTensor_(isContiguous)(src) && THTensor_(nElement)(r_) == THTensor_(nElement)(src)) {
     real *tp = THTensor_(data)(t);
     real *sp = THTensor_(data)(src);
     real *rp = THTensor_(data)(r_);
@@ -866,9 +856,7 @@ void THTensor_(cpow)(THTensor *r_, THTensor *t, THTensor *src)
 void THTensor_(cdiv)(THTensor *r_, THTensor *t, THTensor *src)
 {
   THTensor_(resizeAs)(r_, t);
-  if (((THTensor_(isContiguous)(r_) && THTensor_(isContiguous)(t) && THTensor_(isContiguous)(src)) || 
-    (THTensor_(isTransposed)(r_) && THTensor_(isTransposed)(t) && THTensor_(isTransposed)(src))) &&
-    THTensor_(nElement)(r_) == THTensor_(nElement)(src)) {
+  if (THTensor_(isContiguous)(r_) && THTensor_(isContiguous)(t) && THTensor_(isContiguous)(src) && THTensor_(nElement)(r_) == THTensor_(nElement)(src)) {
     real *tp = THTensor_(data)(t);
     real *sp = THTensor_(data)(src);
     real *rp = THTensor_(data)(r_);
@@ -974,9 +962,7 @@ void THTensor_(crshift)(THTensor *r_, THTensor *t, THTensor *src)
 void THTensor_(cfmod)(THTensor *r_, THTensor *t, THTensor *src)
 {
   THTensor_(resizeAs)(r_, t);
-  if (((THTensor_(isContiguous)(r_) && THTensor_(isContiguous)(t) && THTensor_(isContiguous)(src)) || 
-    (THTensor_(isTransposed)(r_) && THTensor_(isTransposed)(t) && THTensor_(isTransposed)(src))) &&
-    THTensor_(nElement)(r_) == THTensor_(nElement)(src)) {
+  if (THTensor_(isContiguous)(r_) && THTensor_(isContiguous)(t) && THTensor_(isContiguous)(src) && THTensor_(nElement)(r_) == THTensor_(nElement)(src)) {
       real *tp = THTensor_(data)(t);
       real *sp = THTensor_(data)(src);
       real *rp = THTensor_(data)(r_);
@@ -1003,9 +989,7 @@ void THTensor_(cfmod)(THTensor *r_, THTensor *t, THTensor *src)
 void THTensor_(cremainder)(THTensor *r_, THTensor *t, THTensor *src)
 {
   THTensor_(resizeAs)(r_, t);
-  if (((THTensor_(isContiguous)(r_) && THTensor_(isContiguous)(t) && THTensor_(isContiguous)(src)) || 
-    (THTensor_(isTransposed)(r_) && THTensor_(isTransposed)(t) && THTensor_(isTransposed)(src))) &&
-    THTensor_(nElement)(r_) == THTensor_(nElement)(src)) {
+  if (THTensor_(isContiguous)(r_) && THTensor_(isContiguous)(t) && THTensor_(isContiguous)(src) && THTensor_(nElement)(r_) == THTensor_(nElement)(src)) {
       real *tp = THTensor_(data)(t);
       real *sp = THTensor_(data)(src);
       real *rp = THTensor_(data)(r_);
@@ -1108,9 +1092,7 @@ void THTensor_(cbitxor)(THTensor *r_, THTensor *t, THTensor *src)
 void THTensor_(tpow)(THTensor *r_, real value, THTensor *t)
 {
   THTensor_(resizeAs)(r_, t);
-  if (((THTensor_(isContiguous)(r_) && THTensor_(isContiguous)(t)) ||
-    (THTensor_(isTransposed)(r_) && THTensor_(isTransposed)(t))) &&
-    THTensor_(nElement)(r_) == THTensor_(nElement)(t)) {
+  if (THTensor_(isContiguous)(r_) && THTensor_(isContiguous)(t) && THTensor_(nElement)(r_) == THTensor_(nElement)(t)) {
     real *tp = THTensor_(data)(t);
     real *rp = THTensor_(data)(r_);
     ptrdiff_t sz = THTensor_(nElement)(t);
@@ -2550,8 +2532,7 @@ int THTensor_(equal)(THTensor *ta, THTensor* tb)
   if(!THTensor_(isSameSizeAs)(ta, tb))
     return 0;
 
-  if ((THTensor_(isContiguous)(ta) && THTensor_(isContiguous)(tb)) ||
-    (THTensor_(isTransposed)(ta) && THTensor_(isTransposed)(tb))) {
+  if (THTensor_(isContiguous)(ta) && THTensor_(isContiguous)(tb)) {
     real *tap = THTensor_(data)(ta);
     real *tbp = THTensor_(data)(tb);
     ptrdiff_t sz = THTensor_(nElement)(ta);
